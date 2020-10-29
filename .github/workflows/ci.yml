@@ -1,104 +1,14 @@
 name: CI
-
+​
 on:
   push:
     branches:
       - '*'
-
+​
 env:
   PACKAGE_NAME: aws-iot-securetunneling-localproxy
-
+​
 jobs:
-  osx:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v2
-      name: 'Checkout'
-    - name: Install brew dependencies
-      run: |
-        brew install openssl zlib cmake wget git
-    - name: Install boost
-      working-directory: ${{ github.workspace }}
-      run: |
-        wget https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz -O /tmp/boost.tar.gz
-        tar xzvf /tmp/boost.tar.gz
-        cd boost_1_69_0
-        ./bootstrap.sh --with-toolset=clang
-        ./b2 install toolset=clang
-    - name: Install protobuf
-      working-directory: ${{ github.workspace }}
-      run: |
-        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protobuf-all-3.6.1.tar.gz -O /tmp/protobuf-all-3.6.1.tar.gz
-        tar xzvf /tmp/protobuf-all-3.6.1.tar.gz
-        cd protobuf-3.6.1
-        mkdir build_make
-        cd build_make
-        cmake ../cmake
-        make
-        make install
-    - name: Install Catch2
-      working-directory: ${{ github.workspace }}
-      run: |
-        git clone --branch v2.13.2 https://github.com/catchorg/Catch2.git
-        cd Catch2
-        mkdir build
-        cd build
-        cmake ../
-        make
-        make install
-    - name: Building localproxy
-      working-directory: ${{ github.workspace }}
-      run: |
-        mkdir build
-        cd build
-        cmake .. -DOPENSSL_ROOT_DIR=/usr/local/Cellar/openssl@1.1/1.1.1g/ -DOPENSSL_LIBRARIES=/usr/local/Cellar/openssl@1.1/1.1.1g/lib/
-        make
-  ubuntu:
-    runs-on: ubuntu-latest
-    steps:
-    - name: 'Checkout'
-      uses: actions/checkout@v2
-    - name: Install apt-get dependencies
-      run: |
-        sudo apt-get install -y build-essential git python3-dev
-        sudo apt-get install -y wget tar zlibc libssl-dev openssl cmake python-dev
-        sudo apt-get clean -y
-    - name: Install boost
-      working-directory: ${{ github.workspace }}
-      run: |
-        wget https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz -O /tmp/boost.tar.gz
-        tar xzvf /tmp/boost.tar.gz
-        cd boost_1_69_0
-        ./bootstrap.sh
-        sudo ./b2 install
-    - name: Install protobuf
-      working-directory: ${{ github.workspace }}
-      run: |
-        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protobuf-all-3.6.1.tar.gz -O /tmp/protobuf-all-3.6.1.tar.gz
-        tar xzvf /tmp/protobuf-all-3.6.1.tar.gz
-        cd protobuf-3.6.1
-        mkdir build_make
-        cd build_make
-        cmake ../cmake
-        make
-        sudo make install
-    - name: install Catch2
-      working-directory: ${{ github.workspace }}
-      run: |
-        git clone --branch v2.13.2 https://github.com/catchorg/Catch2.git
-        cd Catch2
-        mkdir build
-        cd build
-        cmake ../
-        make
-        sudo make install
-    - name: Building localproxy
-      working-directory: ${{ github.workspace }}
-      run: |
-        mkdir build
-        cd build
-        cmake ..
-        make
   windows:
     runs-on: windows-latest
     steps:
@@ -165,3 +75,9 @@ jobs:
           cd build
           cmake -DWIN32_WINNT=0x0A00 -DBoost_USE_STATIC_LIBS=ON -DCMAKE_PREFIX_PATH="C:\Boost;C:\Program Files (x86)\Catch2;C:\Program Files (x86)\protobuf;C:\Program Files\OpenSSL" -G "Visual Studio 16 2019" -A x64 ..\
           msbuild localproxy.vcxproj -p:Configuration=Release
+          ls ./bin
+      - name: 'Upload LP'
+        uses: actions/upload-artifact@v1
+        with:
+          name: 'localproxy'
+          path: 'D:\a\aws-iot-securetunneling-localproxy\aws-iot-securetunneling-localproxy\build\bin'
